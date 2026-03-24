@@ -18,7 +18,7 @@ jobs:
       run: echo "Hello World"
 
     - name: multiple shell commands
-        run: |       
+      run: |       
         echo "Hello World"
         echo "Welcome to GitHub Actions"
         echo "This is a multi-line command"
