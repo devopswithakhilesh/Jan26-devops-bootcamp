@@ -69,16 +69,16 @@ resource "aws_ecs_service" "service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [aws_subnet.private1.id, aws_subnet.private2.id]
-    security_groups = [aws_security_group.ecs.id]
+    subnets          = [aws_subnet.private1.id, aws_subnet.private2.id]
+    security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = false
   }
 
-    load_balancer {
-        target_group_arn = aws_lb_target_group.app_tg.arn
-        container_name   = var.app_name
-        container_port   = var.container_port
-    }
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app_tg.arn
+    container_name   = var.app_name
+    container_port   = var.container_port
+  }
 
 }
 
@@ -92,7 +92,7 @@ resource "aws_appautoscaling_target" "ecs_scaling_target" {
   resource_id        = "service/${aws_ecs_cluster.app_cluster.name}/${aws_ecs_service.service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
-} 
+}
 
 resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
   name               = "${var.prefix}-${var.app_name}-cpu-scaling-policy"
@@ -102,7 +102,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
   service_namespace  = aws_appautoscaling_target.ecs_scaling_target.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value       = 70.0
+    target_value = 70.0
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
