@@ -36,19 +36,19 @@ resource "aws_secretsmanager_secret_version" "db_password_version" {
 
 # rds instance -> aws_db_instance.postgres.username
 resource "aws_db_instance" "postgres" {
-  identifier           = "${var.prefix}-${var.app_name}-db"
-  allocated_storage    = 20
-  engine               = "postgres"
-  engine_version       = "15.14"
-  instance_class       = "db.t3.micro"
+  identifier        = "${var.prefix}-${var.app_name}-db"
+  allocated_storage = 20
+  engine            = "postgres"
+  engine_version    = "15.14"
+  instance_class    = "db.t3.micro"
 
-  db_name              = "studentportal"
-  username             = "postgres"
-  password             = random_password.password.result
-  db_subnet_group_name = aws_db_subnet_group.default.name
-  skip_final_snapshot  = true
-  publicly_accessible  = false
-  vpc_security_group_ids  = [aws_security_group.rds.id]
+  db_name                = "studentportal"
+  username               = "postgres"
+  password               = random_password.password.result
+  db_subnet_group_name   = aws_db_subnet_group.default.name
+  skip_final_snapshot    = true
+  publicly_accessible    = false
+  vpc_security_group_ids = [aws_security_group.rds.id]
 }
 
 

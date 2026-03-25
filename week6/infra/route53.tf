@@ -15,10 +15,10 @@ resource "aws_route53_record" "app_record" {
 # ACM certificate for ALB
 resource "aws_acm_certificate" "app_cert" {
   domain_name       = "${var.app_name}.${var.domain_name}"
-  validation_method = "DNS" 
-    lifecycle {
-        create_before_destroy = true
-    }
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # DNS validation record
