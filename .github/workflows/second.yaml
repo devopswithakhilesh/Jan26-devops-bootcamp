@@ -1,9 +1,10 @@
 name: seconf workflow
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
 # workflow level environment variable
 env:
   WORKFLOW_GREETING: "Hello from the second workflow!"
