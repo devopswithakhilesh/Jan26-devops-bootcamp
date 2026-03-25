@@ -60,3 +60,9 @@ import {
 terraform plan -generate-config-out=manualimportedstuff.tf
 
 
+
+
+
+aws secretsmanager delete-secret \
+    --secret-id jan26-bootcamp-student-portal-db\
+    --force-delete-without-recovery

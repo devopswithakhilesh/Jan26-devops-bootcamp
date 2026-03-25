@@ -1,0 +1,46 @@
+name: ECS build and push to ECR
+
+on:
+  workflow_dispatch:
+
+
+env:
+  AWS_REGION: ap-south-1
+  # << --------- ECR_REGISTRY ------------------>/<--- ECR_REPOSITORY ----->:
+  # 879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26-bootcamp-student-portal
+  ECR_REGISTRY: 879381241087.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: jan26-bootcamp-student-portal
+  IMAGE_TAG: ${{ github.sha }} # $GITHUB_SHA
+  app_path: week6/app/
+
+
+jobs:  
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        working-directory: ${{ env.app_path }}
+        run: |
+          # Build the Docker image
+          # docker build -t 879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26-bootcamp-student-portal:042d3aa84e55dd8c0d089b9c70e54b779f57f30c .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+
+          # Push the image to Amazon ECR
+          # docker push 879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26-bootcamp-student-portal:042d3aa84e55dd8c0d089b9c70e54b779f57f30c
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
