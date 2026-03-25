@@ -15,12 +15,12 @@ env:
 
 
 jobs:  
-  # build-and-push:
-  #   runs-on: ubuntu-latest
+  build-and-push:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
   #     - name: Configure AWS Credentials
   #       uses: aws-actions/configure-aws-credentials@v6
@@ -45,13 +45,13 @@ jobs:
   #         docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
   ecs-deploy:
-    # needs: build-and-push
+    needs: build-and-push
     runs-on: ubuntu-latest
     env:
       ecs_cluster: jan26-bootcamp-student-portal
       ecs_service: jan26-bootcamp-student-portal-service 
       ecs_task_definition: jan26-bootcamp-student-portal-task
-      new_image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+      new_image: 879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26-bootcamp-student-portal:042d3aa84e55dd8c0d089b9c70e54b779f57f30c
 
     steps:
       - name: Configure AWS Credentials
