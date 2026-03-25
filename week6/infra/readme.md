@@ -66,3 +66,9 @@ terraform plan -generate-config-out=manualimportedstuff.tf
 aws secretsmanager delete-secret \
     --secret-id jan26-bootcamp-student-portal-db\
     --force-delete-without-recovery
+
+
+aws ecs describe-task-definition --task-definition jan26-bootcamp-student-portal-task --query taskDefinition 
+
+
+          jq --arg IMAGE 879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26-bootcamp-student-portal '.containerDefinitions[0].image = $IMAGE' task-definition.json > updated-task-definition.json
