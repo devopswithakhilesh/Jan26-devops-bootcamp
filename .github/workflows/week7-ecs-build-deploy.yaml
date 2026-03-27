@@ -26,7 +26,7 @@ jobs:
         working-directory: ${{ env.app_path }}
         run: |
           pip install -r requirements.txt
-          pytest
+          pytest tests/
 
       - name: Build, tag
         working-directory: ${{ env.app_path }}
