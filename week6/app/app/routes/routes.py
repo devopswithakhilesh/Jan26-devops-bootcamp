@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models.models import Student, Attendance, db, Class
+from app.models.models import Student, Attendance, db, Class, Assignment, Announcement
 from datetime import datetime, date
 
 bp = Blueprint("main", __name__)
@@ -26,11 +26,29 @@ def dashboard():
         (total_present / total_records * 100) if total_records > 0 else 0, 1
     )
 
+    # Get pinned announcements + 3 most recent
+    announcements = Announcement.query.filter_by(is_pinned=True).order_by(
+        Announcement.created_at.desc()
+    ).all()
+    recent = Announcement.query.filter_by(is_pinned=False).order_by(
+        Announcement.created_at.desc()
+    ).limit(3).all()
+    announcements = announcements + recent
+
+    # Get upcoming assignments (due today or later, not completed)
+    upcoming_assignments = Assignment.query.filter(
+        Assignment.due_date >= today,
+        Assignment.is_completed == False
+    ).order_by(Assignment.due_date.asc()).limit(5).all()
+
     return render_template(
         "dashboard.html",
         total_students=total_students,
         today_attendance=f"{today_attendance}/{total_students}",
         attendance_rate=attendance_rate,
+        announcements=announcements,
+        upcoming_assignments=upcoming_assignments,
+        today=today,
     )
 
 
@@ -191,3 +209,109 @@ def edit_class(id):
             flash("Error updating class.", "error")
 
     return render_template("edit_class.html", class_obj=class_obj)
+
+
+# ── Assignments ──────────────────────────────────────────────────────────────
+
+@bp.route("/assignments")
+@login_required
+def assignments():
+    today = date.today()
+    pending = Assignment.query.filter(
+        Assignment.is_completed == False
+    ).order_by(Assignment.due_date.asc()).all()
+    completed = Assignment.query.filter(
+        Assignment.is_completed == True
+    ).order_by(Assignment.due_date.desc()).limit(10).all()
+    return render_template("assignments.html", pending=pending, completed=completed, today=today)
+
+
+@bp.route("/add_assignment", methods=["POST"])
+@login_required
+def add_assignment():
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    due_date_str = request.form.get("due_date", "")
+    link = request.form.get("link", "").strip()
+    if title and due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            assignment = Assignment(
+                title=title,
+                description=description or None,
+                due_date=due_date,
+                link=link or None,
+                created_by=current_user.id,
+            )
+            db.session.add(assignment)
+            db.session.commit()
+            flash("Assignment added successfully!", "success")
+        except Exception:
+            flash("Error adding assignment.", "error")
+    else:
+        flash("Title and due date are required.", "error")
+    return redirect(url_for("main.assignments"))
+
+
+@bp.route("/toggle_assignment/<int:id>", methods=["POST"])
+@login_required
+def toggle_assignment(id):
+    assignment = Assignment.query.get_or_404(id)
+    assignment.is_completed = not assignment.is_completed
+    db.session.commit()
+    return redirect(url_for("main.assignments"))
+
+
+@bp.route("/delete_assignment/<int:id>", methods=["POST"])
+@login_required
+def delete_assignment(id):
+    assignment = Assignment.query.get_or_404(id)
+    db.session.delete(assignment)
+    db.session.commit()
+    flash("Assignment deleted.", "success")
+    return redirect(url_for("main.assignments"))
+
+
+# ── Announcements ─────────────────────────────────────────────────────────────
+
+@bp.route("/announcements")
+@login_required
+def announcements():
+    pinned = Announcement.query.filter_by(is_pinned=True).order_by(
+        Announcement.created_at.desc()
+    ).all()
+    others = Announcement.query.filter_by(is_pinned=False).order_by(
+        Announcement.created_at.desc()
+    ).all()
+    return render_template("announcements.html", pinned=pinned, others=others)
+
+
+@bp.route("/add_announcement", methods=["POST"])
+@login_required
+def add_announcement():
+    title = request.form.get("title", "").strip()
+    content = request.form.get("content", "").strip()
+    is_pinned = request.form.get("is_pinned") == "on"
+    if title and content:
+        announcement = Announcement(
+            title=title,
+            content=content,
+            is_pinned=is_pinned,
+            created_by=current_user.id,
+        )
+        db.session.add(announcement)
+        db.session.commit()
+        flash("Announcement posted!", "success")
+    else:
+        flash("Title and content are required.", "error")
+    return redirect(url_for("main.announcements"))
+
+
+@bp.route("/delete_announcement/<int:id>", methods=["POST"])
+@login_required
+def delete_announcement(id):
+    announcement = Announcement.query.get_or_404(id)
+    db.session.delete(announcement)
+    db.session.commit()
+    flash("Announcement deleted.", "success")
+    return redirect(url_for("main.announcements"))
