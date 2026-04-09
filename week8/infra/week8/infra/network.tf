@@ -6,6 +6,9 @@ module "network" {
   vpc_cidr = "10.0.0.0/16"
   vpc_name = "ecs-vpc"
 
+  need_nat_gateway        = true
+  need_single_nat_gateway = true
+
   private_subnet_data = [
     {
       cidr              = "10.0.1.0/24"
