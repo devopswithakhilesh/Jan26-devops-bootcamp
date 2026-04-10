@@ -2,9 +2,9 @@ name: week8-build-deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
     
 env:
   aws_region: ap-south-1
@@ -12,7 +12,6 @@ env:
   tag: ${{ github.sha }}
 
   # registry/repository:tag
-
 
 jobs:
   build:
@@ -54,10 +53,33 @@ jobs:
         run: |
           docker push ${{ env.registry }}/${{ matrix.service.ecr_repo }}:${{ env.tag }}
 
+  migration:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      ECS_CLUSTER: jan26-bootcamp-devopsdozo-cluster
+      ECS_TASK_DEFINITION: jan26-bootcamp-devopsdozo-backend-task
+      ecs_security_group: sg-05f2e60fbbe8bc14e
+      ecs_subnet: subnet-053f9acff255a9284
 
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.aws_region }}
+
+      - name: Run database migration via ECS task
+        run: |
+          aws ecs run-task --cluster ${{ env.ECS_CLUSTER }} \
+          --launch-type FARGATE \
+          --task-definition ${{ env.ECS_TASK_DEFINITION }} \
+          --network-configuration "awsvpcConfiguration={subnets=[${{ env.ecs_subnet }}],securityGroups=[${{ env.ecs_security_group }}],assignPublicIp=ENABLED}" \
+          --overrides '{"containerOverrides":[{"name":"devopsdozo-backend","command":["/bin/sh","migrate.sh"]}]}'
 
   deploy:
-    needs: build
+    needs: [  build, migration]
     runs-on: ubuntu-latest
     env:
       ECS_CLUSTER: jan26-bootcamp-devopsdozo-cluster
@@ -68,16 +90,15 @@ jobs:
         service:
           - name: frontend
             ecr_repo: "devopsdozo-frontend"
-            ECS_APP_CONTAINER_NAME: frontend
+            ECS_APP_CONTAINER_NAME: devopsdozo-frontend
             ECS_TASK_DEFINITION: jan26-bootcamp-devopsdozo-frontend-task
             ECS_SERVICE: jan26-bootcamp-devopsdozo-frontend-service
           - name: backend
             ecr_repo: "devopsdozo-backend"
-            ECS_APP_CONTAINER_NAME: backend
+            ECS_APP_CONTAINER_NAME: devopsdozo-backend
             ECS_TASK_DEFINITION: jan26-bootcamp-devopsdozo-backend-task
             ECS_SERVICE: jan26-bootcamp-devopsdozo-backend-service
         
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
