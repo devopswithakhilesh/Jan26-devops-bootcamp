@@ -27,28 +27,16 @@ variable "secondary_az" {
   default     = "ap-south-1b"
 }
 
-variable "app_name" {
-  default = "student-portal"
-}
-
 variable "prefix" {
   default = "jan26-bootcamp"
 }
 
-variable "image" {
-  type    = string
-  default = "879381241087.dkr.ecr.ap-south-1.amazonaws.com/jan26week5-studentportal:1.0"
-}
 
 variable "container_port" {
   type    = number
   default = 8000
 }
 
-variable "db_link" {
-  type    = string
-  default = "postgresql://postgres:Admin1234@jan26week5studentportal.cvik8accw2tk.ap-south-1.rds.amazonaws.com:5432/studentportal"
-}
 
 variable "domain_name" {
   type    = string
@@ -77,4 +65,26 @@ variable "rds_subnet" {
     { "name" = "", "cidr" = "", "availability_zone" = "" },
     { "name" = "", "cidr" = "", "availability_zone" = "" }
   ]
+}
+
+
+###### ecs seervices part ###
+
+variable "app_name" {
+  type    = string
+  default = "devopsdozo"
+}
+
+# backend
+variable "backend_port" {
+  type    = number
+  default = 8000
+}
+
+
+# frontend
+
+variable "frontend_port" {
+  type    = number
+  default = 80
 }

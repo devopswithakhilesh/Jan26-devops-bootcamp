@@ -38,8 +38,5 @@ COPY server.js .
 # Expose port
 EXPOSE 80
 
-# Set environment variable for backend URL
-ENV BACKEND_URL=http://backend.3-tier-app-eks.svc.cluster.local:8000
-
 # Start the server
 CMD ["node", "server.js"]
