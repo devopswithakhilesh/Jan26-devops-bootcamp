@@ -255,7 +255,7 @@ def sync_dbs(old_db, new_db):
         f.write(f"to: {new_db}\n")
         f.write("to_safe: true\n")
     # pgsync
-    logging.info("Syncing DB's")
+    logging.info(f"Syncing DB's {old_db} -> {new_db}")
     try:
         process = subprocess.Popen(
             ["pgsync", "--schema-first", "--all-schemas"],
@@ -297,7 +297,9 @@ def migrate_db(db_link):
     # sync the db's
     print(f'syncing the db: {host} -> {new_host}')
     time.sleep(10)
-    sync_dbs(host, new_host)
+    source_db_link = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+    destination_db_link = f"postgresql://{user}:{password}@{new_host}:{port}/{db_name}"
+    sync_dbs(source_db_link, destination_db_link)
     # revoke the sgs
     # swap the db's
     print(f'swapping the db: {rds_instance_id} -> {new_rds_instance_id}')

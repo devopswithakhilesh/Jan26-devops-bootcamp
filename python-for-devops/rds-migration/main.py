@@ -8,7 +8,7 @@ def parse_args():
     parser.add_argument('--db-link', type=str, required=True, help='The link to the RDS database')
     args = parser.parse_args()
     return args
-        
+
 def main():
     parser = argparse.ArgumentParser(description='Migrate RDS database')
     parser.add_argument('--db-link', type=str, required=True, help='The link to the RDS database')
@@ -17,3 +17,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# usage: python main.py --db-link 'postgresql://postgres:Admin1234@rds-migration.cvik8accw2tk.ap-south-1.rds.amazonaws.com:5432/postgres'

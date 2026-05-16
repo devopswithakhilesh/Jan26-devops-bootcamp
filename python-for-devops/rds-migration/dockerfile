@@ -43,4 +43,5 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set the command to run the Python application
-CMD ["python3", "main.py", "--db-link", "postgresql://postgres:Admin1234@rds-migration.cvik8accw2tk.ap-south-1.rds.amazonaws.com:5432/postgres"]
+# CMD ["python3", "main.py", "--db-link", "postgresql://postgres:Admin1234@rds-migration.cvik8accw2tk.ap-south-1.rds.amazonaws.com:5432/postgres"]
+CMD ["python3", "main.py"]
