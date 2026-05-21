@@ -1,0 +1,35 @@
+---
+# Same kind of playbook as ansible-labs/lab2.
+# Packer will run this against the temp EC2 instance.
+
+- name: Bake nginx into the AMI
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Enable nginx so it starts on every boot
+      service:
+        name: nginx
+        enabled: yes
+
+    - name: Drop a custom landing page
+      copy:
+        content: "<h1>Baked by Packer + Ansible</h1>\n"
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Clean up apt cache to keep the AMI small
+      apt:
+        autoclean: yes
