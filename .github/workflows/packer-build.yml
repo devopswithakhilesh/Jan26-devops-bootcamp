@@ -1,0 +1,61 @@
+# .github/workflows/packer-build.yml
+name: Packer Build AL2023 AMI
+
+on:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "**.pkr.hcl"
+  #     - "**.pkrvars.hcl"
+  #     - ".github/workflows/packer-build.yml"
+  # schedule:
+  #   - cron: "0 9 1,15 * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Which environment to build"
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # For push events default to dev; for manual runs use the chosen input
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+
+    env:
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: latest
+
+      - name: Packer Init
+        run: packer init .
+
+      - name: Packer Format Check
+        run: packer fmt -check -diff .
+
+      - name: Packer Validate
+        run: packer validate -var-file="${ENVIRONMENT}.pkrvars.hcl" .
+
+      - name: Packer Build
+        run: packer build -var-file="${ENVIRONMENT}.pkrvars.hcl" .
